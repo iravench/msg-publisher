@@ -30,8 +30,8 @@ amqpConn.catch((err) => {
 })
 
 export default {
-  send: (user_id, category, msg) => {
-    const privateRoutingKey = rkeyPrivate + user_id
+  send: (target, category, msg) => {
+    const privateRoutingKey = rkeyPrivate + target.app_id + '.' + target.device_id
     const amqpOk = amqpConn.then((conn) => {
       // create an amqp channel for the spark instance
       return conn.createChannel().then((ch) => {

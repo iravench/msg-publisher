@@ -16,13 +16,14 @@ export default (opts) => {
       // TBD apply data points sanitization
 
       // only the category of system can be broadcast
-      if (!data.user_id && category !== CATEGORIES.SYSTEM)
-        throw new ValidationError('missing user_id')
+      if ((!data.app_id || !data.device_id) && category !== CATEGORIES.SYSTEM)
+        throw new ValidationError('missing app_id/device_id or both')
 
-      if (!data.message && typeof data.message !== 'string')
+      if (!data.message || typeof data.message !== 'string')
         throw new ValidationError('missing message')
 
-      const user_id = data.user_id
+      const app_id = data.app_id
+      const device_id = data.device_id
       const msg = {
         message: data.message,
         // blob represents application specific data
@@ -31,10 +32,11 @@ export default (opts) => {
       }
 
       const err_msg = 'error delivering message'
-      if(user_id) {
-        log.debug({ message: msg }, `sending ${category} message to ${user_id}`)
+      if(app_id && device_id) {
+        log.debug({ message: msg }, `sending ${category} message to ${app_id}-${device_id}`)
         try {
-          return await impl.send(user_id, category, msg)
+          const target = { app_id: app_id, device_id: device_id }
+          return await impl.send(target, category, msg)
         } catch (err) {
           log.error(err, 'error sending message')
           throw new Error(err_msg)
